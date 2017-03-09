@@ -9,11 +9,13 @@ description:
 
 &nbsp;
 
-I work as a Software Engineer for SolarWinds MSP developing cloud based services for IT management.
+I am a Software Engineer living and working in Edinburgh. I have around 10 years industry experience in both agency and product environments developing a variety of applications including e-commerce applications, CMS, email marketing systems, intranets and IT management systems.
 
-I have around 10 years industry experience in both agency and product environments developing a variety of applications including e-commerce applications, CMS, email marketing systems, intranets and IT management systems.
+I am passionate about both the products I build and the way in which I develop them. I aim to deliver innovative solutions that support the needs of today while considering future requirements.
 
-I have industry experience developing applications written using Java and JUnit, PHP and PHPUnit, ExtJS and Jasmine, MySQL.
+I have experience working with both greenfield and legacy business critical systems, taking into account factors such as maintainability, separation of concerns and extensibility.
+
+I enjoy being able to write clean code and have an understanding of the importance of good software design; TDD, continuous delivery and code review for every change that is introduced into the codebase are core principles that I follow.
 
 ## Toolbox
 
