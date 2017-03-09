@@ -1,5 +1,5 @@
 {
-  "name": "GDKS Blog",
+  "name": "gdks",
   "dependencies": {
     "jquery": "~3.1.1"
   }
