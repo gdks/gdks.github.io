@@ -4,9 +4,6 @@ description: Encapsulation in Object Oriented Programming
 header: Encapsulation in Object Oriented Programming
 ---
 
-
-&nbsp;
-
 Encapsulation is an Object Oriented Programming concept that binds together data and functions that manipulate that data to keep it safe from outside interference from client code.
 
 ### Information Hiding
