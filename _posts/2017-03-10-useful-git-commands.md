@@ -5,8 +5,6 @@ header: Useful but rarely used git commands
 ---
 
 
-&nbsp;
-
 This is a list of git commands I've found really useful but have only needed rarely so I'm recording these here for future reference.
 
 &nbsp;

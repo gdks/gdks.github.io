@@ -5,8 +5,6 @@ header: Useful but rarely used bash commands
 ---
 
 
-&nbsp;
-
 This is a list of bash commands I've found really useful but have only needed rarely so I'm recording these here for future reference.
 
 &nbsp;
