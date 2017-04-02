@@ -4,7 +4,6 @@ description:
 header: Java Collections Overview
 ---
 
-
 The Java collections framework is a set of implementations of common data structures. A collection is an object that can hold references to other objects.
 
 | Set | List | Map |
