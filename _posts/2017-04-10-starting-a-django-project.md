@@ -6,8 +6,7 @@ header: Starting a Django Project and App
 
 ### Create project environment
 
-Python's venv module allows creation of lightweight virtual environments. These are isolated working copies of Python which
-allow you to work on a specific project without worry of affecting other projects. Each virtual environment has its own Python binary, allowing creation of environments with various Python versions, and can have its own independent set of installed Python packages.
+Python's venv module allows creation of lightweight virtual environments. These are isolated working copies of Python which allow you to work on a specific project without affecting others.
 
 We start by creating a venv using the following command.
 
@@ -25,7 +24,7 @@ We can now use pip to install the Django framework. This pip install will be iso
 
 > pip install django
 
-We start a new Django project and change to within the project diretory.
+We start a new Django project and change to within the project directory.
 
 > django-admin.py startproject [projectname] && cd [projectname]
 
