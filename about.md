@@ -19,12 +19,20 @@ Test Driven Design and code review for every change that is introduced into the 
 
 &nbsp;
 
+### Version Control
+
+I’ve worked with Tortoise SVN using a feature branching strategy and using Git with both Gitflow and the forking model.
+
 ### Build and Deployment Tools
 
 Docker, Terraform, Jenkins.
 
 ### Frameworks and Libraries
 
-Symfony, Silex, Spring Boot, Dropwizard, GWT, ExtJS with Deft, Django
+Symfony, Silex, Spring Boot, Dropwizard, GWT, ExtJS with Deft, Django.
+
+### Project Management Tools
+
+Jira, Confluence, Mantis, Evernote, Trello.
 
 &nbsp;
