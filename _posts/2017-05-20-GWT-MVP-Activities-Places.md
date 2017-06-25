@@ -4,7 +4,7 @@ description: GWT MVP with Activities and Places
 header: GWT MVP with Activities and Places
 ---
 
-## View
+### View
 ```
 public interface HelloView extents IsWidget {
     public interface Presenter {
@@ -13,8 +13,8 @@ public interface HelloView extents IsWidget {
 }
 ```
 
-## ClientFactory
-<br/>
+### ClientFactory
+
 Holds on to instances of views and other reusable resources.
 
 ```
@@ -24,8 +24,8 @@ public interface ClientFactory {
 }
 ```
 
-## Activity
-<br/>
+### Activity
+
 Similar to Presenter. Implements the Presenter interface defined in the view above.
 
 ```
@@ -42,8 +42,8 @@ public class HelloActivity extends AbstractActivity implements HelloView.Present
 }
 ```
 
-## Place
-<br/>
+### Place
+
 Most Activities have an associated Place.
 
 ```
@@ -62,8 +62,8 @@ public class HelloPlace extends Place {
 }
 ```
 
-## PlaceHistoryMapper
-<br/>
+### PlaceHistoryMapper
+
 Link between PlaceTokenizers and GWT's history mechanism.
 
 ```
@@ -71,8 +71,8 @@ Link between PlaceTokenizers and GWT's history mechanism.
 public interface MyPlaceHistoryMapper extends PlaceHistoryMapper {}
 ```
 
-## ActivityMapper
-<br/>
+### ActivityMapper
+
 How we map each Place to an Activity. Used to automatically route app to an Activity.
 
 ```

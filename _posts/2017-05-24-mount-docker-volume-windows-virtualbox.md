@@ -6,14 +6,13 @@ header: Share a Windows folder with a Docker Container
 
 This only applies to running Docker on Windows 7 or older using VirtualBox to run the Docker host VM.
 
-## Share the directory in Windows with the Docker Host
-<br/>
+### Share the directory in Windows with the Docker Host
 
 * Open VirtualBox Manager.
 * The Docker Host VM is called "default". Open Settings for this VM.
 * Go to the "Shared Folders" panel and add the directory you want to access from your Docker Container.
 
-## Run the Docker Container mounting the volume
+### Run the Docker Container mounting the volume
 
 > docker run -it -v [/path/to/shared/folder/in/docker/host]:[/path/in/container] [image-name] sh
 
