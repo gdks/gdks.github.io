@@ -6,31 +6,34 @@ header: Useful Docker Commands
 
 Cleaning up
 
-> docker system prune
+    docker system prune
 
-> docker images prune
+    docker images prune
 
-> docker containers prune
+    docker containers prune
 
 
 Connect to running container
 
-> docker exec -it containerid /bin/bash
+    docker exec -it containerid /bin/bash
 
-> docker exec -it containerid /bin/sh
+    docker exec -it containerid /bin/sh
 
-> docker attach containerid
+    docker attach containerid
+
 
 Build image from Dockerfile
 
-> docker build -t containername -f /path/to/Dockerfile .
+    docker build -t containername -f /path/to/Dockerfile .
+
 
 Run mounting Docker socket to host
 
-> docker run -it -v /var/run/docker.sock:/var/run/docker.sock containername
+    docker run -it -v /var/run/docker.sock:/var/run/docker.sock containername
+
 
 Run mounting host directory to container
 
-> docker run -it -v ~/host/path/:/container/path/ containername
+    docker run -it -v ~/host/path/:/container/path/ containername
 
 &nbsp;
