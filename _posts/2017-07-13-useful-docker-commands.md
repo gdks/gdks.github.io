@@ -6,12 +6,13 @@ header: Useful Docker Commands
 
 Cleaning up
 
-    docker system prune
+```
+docker system prune
 
-    docker images prune
+docker images prune
 
-    docker containers prune
-
+docker containers prune
+```
 
 Connect to running container
 
