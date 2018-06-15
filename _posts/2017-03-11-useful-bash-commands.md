@@ -21,6 +21,18 @@ PHP Lint test / syntax check
 
 > find . -name \*.php -exec php -l "{}" \;
 
+Fix line endings
+
+>  find -type f -name \*.php -exec dos2unix {} \;
+
+Recursively chmod only PHP files
+
+> find . -type f -name '\*.php' -exec chmod 644 {} \;
+
+Recursively chmod only directories
+
+> find . -type d -exec chmod 755 {} \;
+
 Curl REST requests
 
 > curl -X DELETE http://localhost:3000/users/3

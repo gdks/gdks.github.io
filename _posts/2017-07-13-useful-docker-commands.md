@@ -6,11 +6,13 @@ header: Useful Docker Commands
 
 Cleaning up
 
-> docker system prune
+> docker system prune [-a]
 
 > docker images prune
 
 > docker containers prune
+
+> docker rm $(docker ps --no-trunc -aq)
 
 
 Connect to running container
