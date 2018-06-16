@@ -30,7 +30,8 @@ Temporarily ignore a file from the index or start tracking again
 Revert local repository to same state as remote
 
 > git fetch [remote]
-git reset --hard [remote]/[branch]
+
+> git reset --hard [remote]/[branch]
 
 Search commit messages in log history
 
@@ -43,5 +44,13 @@ Search contents of commits in history
 Search all commit history for file contents
 
 > git grep <regexp> $(git rev-list --all)
+
+Fetch remote, compare to local, then merge
+
+> git fetch [remote]
+
+> git diff --name-only HEAD…[remote]/[branch]
+
+> git merge [remote][branch]
 
 &nbsp;
