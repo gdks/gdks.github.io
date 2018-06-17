@@ -53,4 +53,15 @@ Fetch remote, compare to local, then merge
 
 > git merge [remote][branch]
 
+Git aliases
+
+```
+[alias]
+  prune = fetch --prune
+  undo = reset --soft HEAD^
+  stash-all = stash save --include-untracked
+  ignored = !git ls-files -v | grep "^[[:lower:]]"
+  glog = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+```
+
 &nbsp;
