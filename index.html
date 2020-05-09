@@ -26,7 +26,24 @@
   <!-- Add your site or application content here -->
   <section class="showcase">
     <div class="video-container">
-        <video src="img/roads.mp4" autoplay muted loop></video>
+        <video src="img/roads.mp4" id="cover" autoplay muted loop></video>
+        <script>
+          const getVideo = () => {
+            const videos = [
+              "boarding",
+              "coding",
+              "desk",
+              "mountains 2",
+              "mountains",
+              "roads",
+              "stickies",
+              "waterfall"
+            ]
+
+            return "img/" + videos[Math.floor(Math.random() * videos.length)] + ".mp4"
+          }
+          document.getElementById("cover").src = getVideo()
+        </script>
     </div>
     <div class="content">
         <h1><span>Gavin</span>Stewart</h1>
