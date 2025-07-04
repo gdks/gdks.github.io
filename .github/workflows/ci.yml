@@ -2,9 +2,9 @@ name: Continuous Integration
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   pull_request_target:
-    branches: [ main ]
+    branches: [ master ]
   push:
     branches: [ develop, feature/*, bugfix/*, hotfix/* ]
 

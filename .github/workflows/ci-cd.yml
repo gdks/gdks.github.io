@@ -2,7 +2,7 @@ name: Continuous Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   schedule:
     # Run security scans weekly
     - cron: '0 0 * * 0'
@@ -12,7 +12,7 @@ env:
 
 jobs:
   # ============================================================================
-  # CI JOBS - Run on main branch before deployment
+  # CI JOBS - Run on master branch before deployment
   # ============================================================================
   
   # Static Analysis & Code Quality
@@ -74,7 +74,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
+          base: master
           head: HEAD
           extra_args: --debug --only-verified
 
@@ -244,7 +244,7 @@ jobs:
           path: playwright-report/
 
   # ============================================================================
-  # CD JOBS - Deploy only on main branch pushes after all CI checks pass
+  # CD JOBS - Deploy only on master branch pushes after all CI checks pass
   # ============================================================================
   
   # Deploy to GitHub Pages
