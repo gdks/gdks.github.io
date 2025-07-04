@@ -7,6 +7,7 @@
 [![Continuous Deployment](https://github.com/gdks/gdks.github.io/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/gdks/gdks.github.io/actions/workflows/ci-cd.yml)
 [![Security Scan](https://github.com/gdks/gdks.github.io/actions/workflows/security-scan.yml/badge.svg)](https://github.com/gdks/gdks.github.io/actions/workflows/security-scan.yml)
 [![CI](https://github.com/gdks/gdks.github.io/actions/workflows/ci.yml/badge.svg)](https://github.com/gdks/gdks.github.io/actions/workflows/ci.yml)
+[![PR Checks](https://github.com/gdks/gdks.github.io/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/gdks/gdks.github.io/actions/workflows/pr-checks.yml)
 
 [![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
 [![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
@@ -139,6 +140,7 @@ npm run test:browsers
 │   └── workflows/
 │       ├── ci-cd.yml     # Continuous deployment
 │       ├── ci.yml        # Continuous integration
+│       ├── pr-checks.yml # Pull request validation
 │       └── security-scan.yml # Security scanning
 ├── index.html            # Main HTML file
 ├── 404.html              # Custom 404 page
