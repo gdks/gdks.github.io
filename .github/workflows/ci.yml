@@ -1,0 +1,273 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ develop, feature/*, bugfix/*, hotfix/* ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # CI JOBS - Quality gates before merge
+  # ============================================================================
+  
+  # Static Analysis & Code Quality
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier
+
+      - name: HTML Linting
+        run: npx htmlhint "**/*.html"
+
+      - name: CSS Linting
+        run: |
+          echo '{"extends": "stylelint-config-standard", "rules": {"at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}]}}' > .stylelintrc.json
+          npx stylelint "**/*.css"
+
+      - name: JavaScript Linting
+        run: |
+          echo '{"extends": ["eslint:recommended"], "env": {"browser": true, "es2021": true}, "parserOptions": {"ecmaVersion": 12, "sourceType": "module"}}' > .eslintrc.json
+          npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
+
+      - name: Code Formatting Check
+        run: npx prettier --check "**/*.{html,css,js,json,md}"
+
+  # Security Testing
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for hardcoded secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # HTML Validation
+  html-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: HTML5 Validator
+        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+        with:
+          root: ./
+          css: true
+          format: json
+
+  # Web Standards & Accessibility Testing
+  web-standards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install testing tools
+        run: |
+          npm install -g @axe-core/cli pa11y lighthouse
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 &
+          sleep 3
+        
+      - name: Accessibility Testing with axe-core
+        run: |
+          axe http://localhost:8000 --reporter json --output-file axe-results.json || true
+          if [ -f axe-results.json ]; then
+            echo "Axe accessibility results:"
+            cat axe-results.json
+          fi
+
+      - name: Accessibility Testing with pa11y
+        run: |
+          pa11y http://localhost:8000 --reporter json > pa11y-results.json || true
+          if [ -f pa11y-results.json ]; then
+            echo "Pa11y accessibility results:"
+            cat pa11y-results.json
+          fi
+
+      - name: Upload accessibility test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-reports-${{ github.run_number }}
+          path: |
+            axe-results.json
+            pa11y-results.json
+
+  # Performance & SEO Testing
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 &
+          sleep 3
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --collect.url=http://localhost:8000 --collect.numberOfRuns=3 --assert.assertions.categories:performance=0.8 --assert.assertions.categories:accessibility=0.9 --assert.assertions.categories:best-practices=0.8 --assert.assertions.categories:seo=0.8 --upload.target=temporary-public-storage
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports-${{ github.run_number }}
+          path: .lighthouseci/
+
+  # Cross-browser Testing
+  cross-browser-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox, edge]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install -D @playwright/test
+          npx playwright install --with-deps
+
+      - name: Run cross-browser tests
+        run: |
+          cat > playwright.config.js << 'EOF'
+          module.exports = {
+            testDir: './tests',
+            use: {
+              baseURL: 'http://localhost:8000',
+            },
+            projects: [
+              { name: 'chromium', use: { ...require('@playwright/test').devices['Desktop Chrome'] } },
+              { name: 'firefox', use: { ...require('@playwright/test').devices['Desktop Firefox'] } },
+              { name: 'webkit', use: { ...require('@playwright/test').devices['Desktop Safari'] } },
+            ],
+            webServer: {
+              command: 'python3 -m http.server 8000',
+              port: 8000,
+              reuseExistingServer: !process.env.CI,
+            },
+          };
+          EOF
+          
+          mkdir -p tests
+          cat > tests/basic.spec.js << 'EOF'
+          const { test, expect } = require('@playwright/test');
+          
+          test('homepage loads correctly', async ({ page }) => {
+            await page.goto('/');
+            await expect(page.locator('h1')).toContainText('Gavin Stewart');
+            await expect(page.locator('title')).toContainText('Gavin Stewart');
+          });
+          
+          test('navigation works', async ({ page }) => {
+            await page.goto('/');
+            await page.click('a[href="#about"]');
+            await expect(page.locator('#about')).toBeVisible();
+          });
+          
+          test('responsive design', async ({ page }) => {
+            await page.goto('/');
+            await page.setViewportSize({ width: 375, height: 667 });
+            await expect(page.locator('.hero')).toBeVisible();
+          });
+          EOF
+          
+          npx playwright test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ github.run_number }}
+          path: playwright-report/
+
+  # CI Summary
+  ci-summary:
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, html-validation, web-standards, lighthouse, cross-browser-test]
+    if: always()
+    steps:
+      - name: CI Results Summary
+        run: |
+          echo "## CI Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| HTML Validation | ${{ needs.html-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Standards | ${{ needs.web-standards.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lighthouse | ${{ needs.lighthouse.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cross-browser Test | ${{ needs.cross-browser-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.code-quality.result }}" == "success" ] && 
+             [ "${{ needs.security-scan.result }}" == "success" ] && 
+             [ "${{ needs.html-validation.result }}" == "success" ] && 
+             [ "${{ needs.web-standards.result }}" == "success" ] && 
+             [ "${{ needs.lighthouse.result }}" == "success" ] && 
+             [ "${{ needs.cross-browser-test.result }}" == "success" ]; then
+            echo "✅ All CI checks passed! Ready for merge." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some CI checks failed. Please review and fix issues before merging." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

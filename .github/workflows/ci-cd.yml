@@ -1,0 +1,299 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    # Run security scans weekly
+    - cron: '0 0 * * 0'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # CI JOBS - Run on main branch before deployment
+  # ============================================================================
+  
+  # Static Analysis & Code Quality
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier
+
+      - name: HTML Linting
+        run: npx htmlhint "**/*.html"
+
+      - name: CSS Linting
+        run: |
+          echo '{"extends": "stylelint-config-standard", "rules": {"at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}]}}' > .stylelintrc.json
+          npx stylelint "**/*.css"
+
+      - name: JavaScript Linting
+        run: |
+          echo '{"extends": ["eslint:recommended"], "env": {"browser": true, "es2021": true}, "parserOptions": {"ecmaVersion": 12, "sourceType": "module"}}' > .eslintrc.json
+          npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
+
+      - name: Code Formatting Check
+        run: npx prettier --check "**/*.{html,css,js,json,md}"
+
+  # Security Testing
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for hardcoded secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # HTML Validation
+  html-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: HTML5 Validator
+        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+        with:
+          root: ./
+          css: true
+          format: json
+
+  # Web Standards & Accessibility Testing
+  web-standards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install testing tools
+        run: |
+          npm install -g @axe-core/cli pa11y lighthouse
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 &
+          sleep 3
+        
+      - name: Accessibility Testing with axe-core
+        run: |
+          axe http://localhost:8000 --reporter json --output-file axe-results.json || true
+          if [ -f axe-results.json ]; then
+            echo "Axe accessibility results:"
+            cat axe-results.json
+          fi
+
+      - name: Accessibility Testing with pa11y
+        run: |
+          pa11y http://localhost:8000 --reporter json > pa11y-results.json || true
+          if [ -f pa11y-results.json ]; then
+            echo "Pa11y accessibility results:"
+            cat pa11y-results.json
+          fi
+
+      - name: Upload accessibility test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-reports-cd-${{ github.run_number }}
+          path: |
+            axe-results.json
+            pa11y-results.json
+
+  # Performance & SEO Testing
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 &
+          sleep 3
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --collect.url=http://localhost:8000 --collect.numberOfRuns=3 --assert.assertions.categories:performance=0.8 --assert.assertions.categories:accessibility=0.9 --assert.assertions.categories:best-practices=0.8 --assert.assertions.categories:seo=0.8 --upload.target=temporary-public-storage
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports-cd-${{ github.run_number }}
+          path: .lighthouseci/
+
+  # Cross-browser Testing
+  cross-browser-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox, edge]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install -D @playwright/test
+          npx playwright install --with-deps
+
+      - name: Run cross-browser tests
+        run: |
+          cat > playwright.config.js << 'EOF'
+          module.exports = {
+            testDir: './tests',
+            use: {
+              baseURL: 'http://localhost:8000',
+            },
+            projects: [
+              { name: 'chromium', use: { ...require('@playwright/test').devices['Desktop Chrome'] } },
+              { name: 'firefox', use: { ...require('@playwright/test').devices['Desktop Firefox'] } },
+              { name: 'webkit', use: { ...require('@playwright/test').devices['Desktop Safari'] } },
+            ],
+            webServer: {
+              command: 'python3 -m http.server 8000',
+              port: 8000,
+              reuseExistingServer: !process.env.CI,
+            },
+          };
+          EOF
+          
+          mkdir -p tests
+          cat > tests/basic.spec.js << 'EOF'
+          const { test, expect } = require('@playwright/test');
+          
+          test('homepage loads correctly', async ({ page }) => {
+            await page.goto('/');
+            await expect(page.locator('h1')).toContainText('Gavin Stewart');
+            await expect(page.locator('title')).toContainText('Gavin Stewart');
+          });
+          
+          test('navigation works', async ({ page }) => {
+            await page.goto('/');
+            await page.click('a[href="#about"]');
+            await expect(page.locator('#about')).toBeVisible();
+          });
+          
+          test('responsive design', async ({ page }) => {
+            await page.goto('/');
+            await page.setViewportSize({ width: 375, height: 667 });
+            await expect(page.locator('.hero')).toBeVisible();
+          });
+          EOF
+          
+          npx playwright test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}-cd-${{ github.run_number }}
+          path: playwright-report/
+
+  # ============================================================================
+  # CD JOBS - Deploy only on main branch pushes after all CI checks pass
+  # ============================================================================
+  
+  # Deploy to GitHub Pages
+  deploy:
+    needs: [code-quality, security-scan, html-validation, web-standards, lighthouse, cross-browser-test]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Post-deployment notifications
+  notify:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
+
+      # Optional: Add Slack notification
+      # - name: Slack Notification
+      #   uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: ${{ job.status }}
+      #     channel: '#deployments'
+      #     webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      #   if: always()
