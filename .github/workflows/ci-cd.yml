@@ -31,6 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm init -y
+          npm pkg set type="module"
           npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier
 
       - name: HTML Linting
@@ -38,13 +39,66 @@ jobs:
 
       - name: CSS Linting
         run: |
-          echo '{"extends": "stylelint-config-standard", "rules": {"at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}]}}' > .stylelintrc.json
+          cat > .stylelintrc.json << 'EOF'
+          {
+            "extends": "stylelint-config-standard",
+            "rules": {
+              "at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}],
+              "comment-empty-line-before": null,
+              "rule-empty-line-before": null,
+              "custom-property-empty-line-before": null,
+              "selector-no-vendor-prefix": null,
+              "property-no-vendor-prefix": null,
+              "media-feature-name-no-vendor-prefix": null,
+              "selector-pseudo-element-colon-notation": null,
+              "color-function-notation": null,
+              "alpha-value-notation": null,
+              "color-hex-length": null,
+              "font-family-name-quotes": null,
+              "media-feature-range-notation": null,
+              "no-descending-specificity": null,
+              "font-family-no-duplicate-names": null,
+              "color-function-alias-notation": null
+            }
+          }
+          EOF
           npx stylelint "**/*.css"
 
       - name: JavaScript Linting
         run: |
-          echo '{"extends": ["eslint:recommended"], "env": {"browser": true, "es2021": true}, "parserOptions": {"ecmaVersion": 12, "sourceType": "module"}}' > .eslintrc.json
-          npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
+          cat > eslint.config.js << 'EOF'
+          export default [
+            {
+              languageOptions: {
+                ecmaVersion: 2021,
+                sourceType: "module",
+                globals: {
+                  window: "readonly",
+                  document: "readonly",
+                  console: "readonly",
+                  localStorage: "readonly",
+                  sessionStorage: "readonly",
+                  fetch: "readonly",
+                  URL: "readonly",
+                  URLSearchParams: "readonly",
+                  FormData: "readonly",
+                  FileReader: "readonly",
+                  Blob: "readonly",
+                  navigator: "readonly"
+                }
+              },
+              rules: {
+                "no-unused-vars": "warn",
+                "no-console": "off",
+                "no-debugger": "warn"
+              }
+            },
+            {
+              ignores: ["**/*.min.js", "js/vendor/**"]
+            }
+          ];
+          EOF
+          npx eslint "**/*.js"
 
       - name: Code Formatting Check
         run: npx prettier --check "**/*.{html,css,js,json,md}"

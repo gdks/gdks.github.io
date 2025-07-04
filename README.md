@@ -37,31 +37,34 @@ This is the personal portfolio website of **Gavin Stewart**, a Software Engineer
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | HTML5, CSS3, JavaScript (ES6+) |
-| **Styling** | Custom CSS, Font Awesome Icons, Google Fonts |
-| **Build Tools** | NPM, Prettier, HTMLHint, Stylelint, ESLint |
-| **Testing** | Playwright, Lighthouse, axe-core, Pa11y |
-| **Deployment** | GitHub Pages, GitHub Actions |
-| **Security** | Trivy, TruffleHog, Dependabot |
+| Category        | Technologies                                 |
+| --------------- | -------------------------------------------- |
+| **Frontend**    | HTML5, CSS3, JavaScript (ES6+)               |
+| **Styling**     | Custom CSS, Font Awesome Icons, Google Fonts |
+| **Build Tools** | NPM, Prettier, HTMLHint, Stylelint, ESLint   |
+| **Testing**     | Playwright, Lighthouse, axe-core, Pa11y      |
+| **Deployment**  | GitHub Pages, GitHub Actions                 |
+| **Security**    | Trivy, TruffleHog, Dependabot                |
 
 ## 📊 Quality Assurance
 
 This project maintains high quality standards through comprehensive automated testing:
 
 ### 🔍 Code Quality
+
 - **HTML Validation**: W3C HTML5 validator
 - **CSS Linting**: Stylelint with standard configuration
 - **JavaScript Linting**: ESLint with recommended rules
 - **Code Formatting**: Prettier for consistent code style
 
 ### 🛡️ Security
+
 - **Vulnerability Scanning**: Trivy security scanner
 - **Secret Detection**: TruffleHog for hardcoded secrets
 - **Dependency Scanning**: Automated security updates
 
 ### 🎯 Performance & Accessibility
+
 - **Lighthouse Audits**: Performance, Accessibility, Best Practices, SEO
 - **Cross-browser Testing**: Chrome, Firefox, Safari compatibility
 - **Accessibility Testing**: axe-core and Pa11y validation
@@ -70,6 +73,7 @@ This project maintains high quality standards through comprehensive automated te
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ (for development tools)
 - Modern web browser
 - Git
@@ -77,21 +81,24 @@ This project maintains high quality standards through comprehensive automated te
 ### Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/gdks/gdks.github.io.git
    cd gdks.github.io
    ```
 
 2. **Install development dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start local server**
+
    ```bash
    # Using Python (recommended)
    python3 -m http.server 8000
-   
+
    # Or using Node.js
    npx http-server -p 8000
    ```
