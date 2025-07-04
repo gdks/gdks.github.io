@@ -1,18 +1,17 @@
-name: Continuous Deployment
+name: Continuous Integration
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
-  schedule:
-    # Run security scans weekly
-    - cron: '0 0 * * 0'
+  push:
+    branches: [ develop, feature/*, bugfix/*, hotfix/* ]
 
 env:
   NODE_VERSION: '18'
 
 jobs:
   # ============================================================================
-  # CI JOBS - Run on main branch before deployment
+  # CI JOBS - Quality gates before merge
   # ============================================================================
   
   # Static Analysis & Code Quality
@@ -74,7 +73,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
+          base: ${{ github.event.repository.default_branch }}
           head: HEAD
           extra_args: --debug --only-verified
 
@@ -133,7 +132,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: accessibility-reports-cd-${{ github.run_number }}
+          name: accessibility-reports-${{ github.run_number }}
           path: |
             axe-results.json
             pa11y-results.json
@@ -166,7 +165,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lighthouse-reports-cd-${{ github.run_number }}
+          name: lighthouse-reports-${{ github.run_number }}
           path: .lighthouseci/
 
   # Cross-browser Testing
@@ -240,60 +239,35 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.browser }}-cd-${{ github.run_number }}
+          name: playwright-report-${{ matrix.browser }}-${{ github.run_number }}
           path: playwright-report/
 
-  # ============================================================================
-  # CD JOBS - Deploy only on main branch pushes after all CI checks pass
-  # ============================================================================
-  
-  # Deploy to GitHub Pages
-  deploy:
+  # CI Summary
+  ci-summary:
+    runs-on: ubuntu-latest
     needs: [code-quality, security-scan, html-validation, web-standards, lighthouse, cross-browser-test]
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  # Post-deployment notifications
-  notify:
-    needs: [deploy]
-    runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Deployment Status
+      - name: CI Results Summary
         run: |
-          if [ "${{ needs.deploy.result }}" == "success" ]; then
-            echo "✅ Deployment successful!"
+          echo "## CI Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| HTML Validation | ${{ needs.html-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Standards | ${{ needs.web-standards.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lighthouse | ${{ needs.lighthouse.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cross-browser Test | ${{ needs.cross-browser-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.code-quality.result }}" == "success" ] && 
+             [ "${{ needs.security-scan.result }}" == "success" ] && 
+             [ "${{ needs.html-validation.result }}" == "success" ] && 
+             [ "${{ needs.web-standards.result }}" == "success" ] && 
+             [ "${{ needs.lighthouse.result }}" == "success" ] && 
+             [ "${{ needs.cross-browser-test.result }}" == "success" ]; then
+            echo "✅ All CI checks passed! Ready for merge." >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Deployment failed!"
+            echo "❌ Some CI checks failed. Please review and fix issues before merging." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-      # Optional: Add Slack notification
-      # - name: Slack Notification
-      #   uses: 8398a7/action-slack@v3
-      #   with:
-      #     status: ${{ job.status }}
-      #     channel: '#deployments'
-      #     webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      #   if: always()

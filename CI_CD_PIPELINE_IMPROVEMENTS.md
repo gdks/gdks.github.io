@@ -6,11 +6,30 @@ This document outlines the comprehensive improvements made to your GitHub Action
 
 ## Pipeline Architecture
 
-The improved pipeline consists of multiple jobs that run in parallel where possible, followed by a deployment stage that depends on all quality gates passing.
+The improved pipeline is split into two separate workflows for better separation of concerns:
+
+### **CI Pipeline (Continuous Integration)**
+Runs on **PRs** and **feature branches** for quality gates before merge.
+
+### **CD Pipeline (Continuous Deployment)**  
+Runs on **main branch** pushes to deploy after all quality gates pass.
 
 ### Pipeline Flow
 
 ```
+PULL REQUESTS & FEATURE BRANCHES:
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
+│                 │  │                 │  │                 │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
+                                    │
+                                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Lighthouse    │  │ Cross-Browser   │  │   CI Summary    │
+│   Testing       │  │ Testing         │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+
+MAIN BRANCH (after merge):
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
 │                 │  │                 │  │                 │  │                 │
@@ -166,9 +185,12 @@ The improved pipeline consists of multiple jobs that run in parallel where possi
 
 ## Workflow Triggers
 
-### Main CI/CD Pipeline (`ci-cd.yml`)
-- **Push**: main, develop branches
+### CI Pipeline (`ci.yml`)
 - **Pull Request**: to main branch
+- **Push**: to develop, feature/*, bugfix/*, hotfix/* branches
+
+### CD Pipeline (`ci-cd.yml`)
+- **Push**: main branch only
 - **Schedule**: Weekly security scans (Sundays at midnight)
 
 ### Security Scan Pipeline (`security-scan.yml`)
@@ -194,8 +216,31 @@ The deployment job requires specific permissions for GitHub Pages:
 1. **`.htmlhintrc`**: HTML linting configuration
 2. **`.prettierrc`**: Code formatting rules
 3. **`.zap/rules.tsv`**: OWASP ZAP security testing rules
-4. **`.github/workflows/ci-cd.yml`**: Main CI/CD pipeline
-5. **`.github/workflows/security-scan.yml`**: Dedicated security scanning
+4. **`.github/workflows/ci.yml`**: CI pipeline for PRs and feature branches
+5. **`.github/workflows/ci-cd.yml`**: CD pipeline for main branch deployment
+6. **`.github/workflows/security-scan.yml`**: Dedicated security scanning
+
+## CI/CD Separation Benefits
+
+### **Quality Gates Before Merge**
+- PRs are tested thoroughly before being allowed to merge
+- Prevents broken code from reaching the main branch
+- Faster feedback loop for developers
+
+### **Deployment Only from Main**
+- Ensures only reviewed and tested code is deployed
+- Provides a clean deployment history
+- Reduces deployment failures
+
+### **Resource Efficiency**
+- CI runs on every PR change for quick feedback
+- CD runs only when code is merged to main
+- Reduces unnecessary compute usage
+
+### **Clear Separation of Concerns**
+- CI focuses on code quality and testing
+- CD focuses on deployment and production readiness
+- Easier to debug and maintain pipelines
 
 ## Best Practices Implemented
 
