@@ -1,0 +1,164 @@
+/* Main.js */
+
+// Smooth scrolling for navigation links
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all navigation links
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    // Add smooth scrolling to each link
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            
+            if (targetSection) {
+                const offsetTop = targetSection.offsetTop - 80; // Account for fixed navbar
+                
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Add navbar background on scroll
+    const navbar = document.querySelector('.navbar');
+    
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+            navbar.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+        } else {
+            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+            navbar.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+        }
+    });
+    
+    // Add animation to cards on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all cards
+    const cards = document.querySelectorAll('.about-card, .skill-card');
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+    
+    // Add typing effect to hero title
+    const heroTitle = document.querySelector('.hero-title .highlight');
+    if (heroTitle) {
+        const text = heroTitle.textContent;
+        heroTitle.textContent = '';
+        
+        let i = 0;
+        const typeWriter = function() {
+            if (i < text.length) {
+                heroTitle.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        };
+        
+        setTimeout(typeWriter, 500);
+    }
+});
+
+// Add some interactive hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    // Code block hover effect
+    const codeBlock = document.querySelector('.code-block');
+    if (codeBlock) {
+        codeBlock.addEventListener('mouseenter', function() {
+            this.style.transform = 'rotate(0deg) scale(1.05)';
+        });
+        
+        codeBlock.addEventListener('mouseleave', function() {
+            this.style.transform = 'rotate(5deg) scale(1)';
+        });
+    }
+    
+    // Social links hover effect
+    const socialLinks = document.querySelectorAll('.social-link');
+    socialLinks.forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.02)';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+
+// Add parallax effect to hero shapes
+document.addEventListener('DOMContentLoaded', function() {
+    const shapes = document.querySelectorAll('.shape');
+    
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const rate = scrolled * -0.5;
+        
+        shapes.forEach((shape, index) => {
+            const speed = (index + 1) * 0.1;
+            shape.style.transform = `translateY(${rate * speed}px) rotate(${45 + scrolled * 0.05}deg)`;
+        });
+    });
+});
+
+// Add custom cursor effect (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    cursor.style.cssText = `
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #00D9FF, #8B5CF6);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transition: transform 0.1s ease;
+        opacity: 0;
+    `;
+    
+    document.body.appendChild(cursor);
+    
+    document.addEventListener('mousemove', function(e) {
+        cursor.style.left = e.clientX - 10 + 'px';
+        cursor.style.top = e.clientY - 10 + 'px';
+        cursor.style.opacity = '0.5';
+    });
+    
+    document.addEventListener('mouseleave', function() {
+        cursor.style.opacity = '0';
+    });
+    
+    // Scale cursor on hover over interactive elements
+    const interactiveElements = document.querySelectorAll('a, button, .btn, .nav-link, .social-link');
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            cursor.style.transform = 'scale(1.5)';
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            cursor.style.transform = 'scale(1)';
+        });
+    });
+});
