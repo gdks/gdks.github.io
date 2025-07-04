@@ -99,7 +99,36 @@ jobs:
           npx eslint "**/*.js"
 
       - name: Code Formatting Check
-        run: npx prettier --check "**/*.{html,css,js,json,md}"
+        run: |
+          cat > .prettierignore << 'EOF'
+          # Vendor files
+          js/vendor/
+          **/*.min.js
+          **/*.min.css
+          
+          # Dependencies
+          node_modules/
+          
+          # Build output
+          dist/
+          build/
+          
+          # Configuration files (ESLint, Stylelint will be managed by workflows)
+          .stylelintrc.json
+          eslint.config.js
+          
+          # OS files
+          .DS_Store
+          Thumbs.db
+          
+          # IDE files
+          .vscode/
+          .idea/
+          
+          # Git
+          .git/
+          EOF
+          npx prettier --check "**/*.{html,css,js,json,md}"
 
   # HTML Validation
   html-validation:
