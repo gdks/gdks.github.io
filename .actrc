@@ -1,0 +1,19 @@
+# Configuration for act (GitHub Actions local runner)
+# This file sets default options for running workflows locally
+
+# Use Ubuntu Docker image for consistency with GitHub Actions
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+
+# Use artifacts directory
+--artifact-server-path /tmp/artifacts
+
+# Enable verbose logging by default for debugging
+# --verbose
+
+# Set environment variables for local testing
+--env CI=true
+--env GITHUB_ACTIONS=true
+--env RUNNER_OS=Linux
+
+# Bind mount for Docker socket (if needed for nested Docker)
+# --bind /var/run/docker.sock:/var/run/docker.sock
