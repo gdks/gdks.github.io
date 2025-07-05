@@ -3,8 +3,6 @@ name: Continuous Integration
 on:
   pull_request:
     branches: [ main ]
-  pull_request_target:
-    branches: [ main ]
   push:
     branches: [ develop, feature/*, bugfix/*, hotfix/* ]
 
@@ -22,9 +20,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -59,9 +54,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -91,9 +83,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: HTML5 Validator
         uses: Cyb3r-Jak3/html5validator-action@v7.2.0
@@ -108,9 +97,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -157,9 +143,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -194,9 +177,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # For pull_request_target, we need to checkout the PR head
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
