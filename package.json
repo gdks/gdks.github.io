@@ -1,24 +1,27 @@
 {
-  "name": "workspace",
+  "name": "gdks-portfolio",
   "version": "1.0.0",
-  "description": "[![Website](https://img.shields.io/website?url=https%3A%2F%2Fwww.gdks.co.uk&style=for-the-badge&logo=firefox&logoColor=white)](https://www.gdks.co.uk) [![GitHub Pages](https://img.shields.io/badge/github%20pages-121013?style=for-the-badge&logo=github&logoColor=white)](https://gdks.github.io) [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)",
-  "main": "index.js",
-  "directories": {
-    "doc": "doc"
-  },
+  "description": "Personal portfolio website of Gavin Stewart - Software Engineer and Engineering Leader",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "live-server --port=5500 --host=0.0.0.0 --no-browser",
-    "lint": "eslint js/ && htmlhint *.html && stylelint css/*.css",
-    "format": "prettier --write ."
+    "dev": "python3 -m http.server 8000",
+    "lint": "make lint",
+    "format": "make format",
+    "ci": "make ci",
+    "ci-full": "make ci-full"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gdks/gdks.github.io.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "portfolio",
+    "software-engineer",
+    "web-development",
+    "accessibility"
+  ],
+  "author": "Gavin Stewart",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/gdks/gdks.github.io/issues"
   },
