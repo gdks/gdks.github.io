@@ -13,7 +13,7 @@
    ========================================================================== */
 
 html {
-  color: #222;
+  color: var(--text-dark);
   font-size: 1em;
   line-height: 1.4;
 }
@@ -29,7 +29,7 @@ html {
  */
 
 ::selection {
-  background: #00d9ff;
+  background: var(--primary-teal);
   text-shadow: none;
 }
 
@@ -41,7 +41,7 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--text-light);
   margin: 1em 0;
   padding: 0;
 }
@@ -85,8 +85,8 @@ textarea {
 
 .browserupgrade {
   margin: 0.2em 0;
-  background: #ccc;
-  color: #000;
+  background: var(--text-light);
+  color: var(--text-dark);
   padding: 0.2em 0;
 }
 
