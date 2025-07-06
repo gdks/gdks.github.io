@@ -44,8 +44,8 @@ help: ## Show this help message
 # ============================================================================
 # SETUP & INSTALLATION
 # ============================================================================
-.PHONY: install install-dev install-global ensure-deps
-install: install-dev install-global ## Install all dependencies
+.PHONY: install install-dev ensure-deps
+install: install-dev ## Install all dependencies
 
 install-dev: ## Install development dependencies
 	@echo "$(BLUE)Installing development dependencies...$(NC)"
@@ -55,10 +55,7 @@ install-dev: ## Install development dependencies
 	fi
 	npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test
 
-install-global: ## Install global tools for CI (deprecated - use install-dev)
-	@echo "$(YELLOW)This target is deprecated. Use 'make install-dev' instead.$(NC)"
-	@echo "$(BLUE)Installing development dependencies...$(NC)"
-	$(MAKE) install-dev
+
 
 ensure-deps: ## Ensure dependencies are installed
 	@if [ ! -d node_modules ]; then \
