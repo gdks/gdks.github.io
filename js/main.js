@@ -1,21 +1,20 @@
-/* Main.js */
+/* Main.js - Portfolio Website JavaScript */
 
-// Smooth scrolling for navigation links
 document.addEventListener('DOMContentLoaded', function () {
-  // Get all navigation links
-  const navLinks = document.querySelectorAll('.nav-link');
+  // ============================================================================
+  // NAVIGATION
+  // ============================================================================
 
-  // Add smooth scrolling to each link
+  // Smooth scrolling for navigation links
+  const navLinks = document.querySelectorAll('.nav-link');
   navLinks.forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault();
-
       const targetId = this.getAttribute('href');
       const targetSection = document.querySelector(targetId);
 
       if (targetSection) {
         const offsetTop = targetSection.offsetTop - 80; // Account for fixed navbar
-
         window.scrollTo({
           top: offsetTop,
           behavior: 'smooth',
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Add navbar background on scroll
   const navbar = document.querySelector('.navbar');
-
   window.addEventListener('scroll', function () {
     if (window.scrollY > 50) {
       navbar.style.background = 'rgba(255, 255, 255, 0.98)';
@@ -37,6 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
       navbar.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
     }
   });
+
+  // ============================================================================
+  // ANIMATIONS
+  // ============================================================================
 
   // Add animation to cards on scroll
   const observerOptions = {
@@ -79,10 +81,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setTimeout(typeWriter, 500);
   }
-});
 
-// Add some interactive hover effects
-document.addEventListener('DOMContentLoaded', function () {
+  // ============================================================================
+  // INTERACTIVE EFFECTS
+  // ============================================================================
+
   // Code block hover effect
   const codeBlock = document.querySelector('.code-block');
   if (codeBlock) {
@@ -106,12 +109,13 @@ document.addEventListener('DOMContentLoaded', function () {
       this.style.transform = 'translateY(0) scale(1)';
     });
   });
-});
 
-// Add parallax effect to hero shapes
-document.addEventListener('DOMContentLoaded', function () {
+  // ============================================================================
+  // PARALLAX EFFECTS
+  // ============================================================================
+
+  // Add parallax effect to hero shapes
   const shapes = document.querySelectorAll('.shape');
-
   window.addEventListener('scroll', function () {
     const scrolled = window.pageYOffset;
     const rate = scrolled * -0.5;
