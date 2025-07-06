@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm init -y
-          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier
+          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test
 
       - name: HTML Linting
         run: npx htmlhint "**/*.html"
@@ -105,7 +105,7 @@ jobs:
 
       - name: Install testing tools
         run: |
-          npm install -g @axe-core/cli pa11y lighthouse
+          echo "Testing tools are now installed as local dependencies"
 
       - name: Start local server
         run: |
@@ -114,7 +114,7 @@ jobs:
 
       - name: Accessibility Testing with axe-core
         run: |
-          axe http://localhost:8000 --reporter json --output-file axe-results.json || true
+          npx axe http://localhost:8000 --save axe-results.json || true
           if [ -f axe-results.json ]; then
             echo "Axe accessibility results:"
             cat axe-results.json
@@ -122,7 +122,7 @@ jobs:
 
       - name: Accessibility Testing with pa11y
         run: |
-          pa11y http://localhost:8000 --reporter json > pa11y-results.json || true
+          npx pa11y http://localhost:8000 --reporter json > pa11y-results.json || true
           if [ -f pa11y-results.json ]; then
             echo "Pa11y accessibility results:"
             cat pa11y-results.json
@@ -150,7 +150,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli
+        run: echo "Lighthouse CI is now installed as a local dependency"
 
       - name: Start local server
         run: |
@@ -159,7 +159,7 @@ jobs:
 
       - name: Run Lighthouse CI
         run: |
-          lhci autorun --collect.url=http://localhost:8000 --collect.numberOfRuns=3 --assert.assertions.categories:performance=0.8 --assert.assertions.categories:accessibility=0.9 --assert.assertions.categories:best-practices=0.8 --assert.assertions.categories:seo=0.8 --upload.target=temporary-public-storage
+          npx lhci autorun --collect.url=http://localhost:8000 --collect.numberOfRuns=3 --assert.assertions.categories:performance=0.8 --assert.assertions.categories:accessibility=0.9 --assert.assertions.categories:best-practices=0.8 --assert.assertions.categories:seo=0.8 --upload.target=temporary-public-storage
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4

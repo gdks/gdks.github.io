@@ -9,6 +9,9 @@ NODE_VERSION := 18
 PORT := 8000
 SERVE_HOST := localhost
 
+# Package.json for local dependencies
+PACKAGE_JSON := package.json
+
 # Colors for output
 RED := \033[0;31m
 GREEN := \033[0;32m
@@ -18,6 +21,9 @@ NC := \033[0m # No Color
 
 # Default target
 .DEFAULT_GOAL := help
+
+# PID file for server management
+SERVER_PID_FILE := .server.pid
 
 # ============================================================================
 # HELP
@@ -38,16 +44,27 @@ help: ## Show this help message
 # ============================================================================
 # SETUP & INSTALLATION
 # ============================================================================
-.PHONY: install install-dev install-global
+.PHONY: install install-dev install-global ensure-deps
 install: install-dev install-global ## Install all dependencies
 
 install-dev: ## Install development dependencies
 	@echo "$(BLUE)Installing development dependencies...$(NC)"
-	npm install
+	@if [ ! -f $(PACKAGE_JSON) ]; then \
+		echo "$(BLUE)Initializing package.json...$(NC)"; \
+		npm init -y; \
+	fi
+	npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test
 
-install-global: ## Install global tools for CI
-	@echo "$(BLUE)Installing global tools...$(NC)"
-	npm install -g @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test
+install-global: ## Install global tools for CI (deprecated - use install-dev)
+	@echo "$(YELLOW)This target is deprecated. Use 'make install-dev' instead.$(NC)"
+	@echo "$(BLUE)Installing development dependencies...$(NC)"
+	$(MAKE) install-dev
+
+ensure-deps: ## Ensure dependencies are installed
+	@if [ ! -d node_modules ]; then \
+		echo "$(YELLOW)Dependencies not found. Installing...$(NC)"; \
+		$(MAKE) install-dev; \
+	fi
 
 # ============================================================================
 # CODE QUALITY
@@ -57,27 +74,32 @@ lint: lint-html lint-css lint-js ## Run all linting checks
 
 lint-html: ## Lint HTML files
 	@echo "$(BLUE)Linting HTML files...$(NC)"
+	@$(MAKE) ensure-deps
 	npx htmlhint "**/*.html" || (echo "$(RED)HTML linting failed$(NC)" && exit 1)
 	@echo "$(GREEN)HTML linting passed$(NC)"
 
 lint-css: ## Lint CSS files
 	@echo "$(BLUE)Linting CSS files...$(NC)"
+	@$(MAKE) ensure-deps
 	@echo '{"extends": "stylelint-config-standard", "rules": {"at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}], "font-family-no-duplicate-names": null}}' > .stylelintrc.json
 	npx stylelint "**/*.css" || (echo "$(RED)CSS linting failed$(NC)" && exit 1)
 	@echo "$(GREEN)CSS linting passed$(NC)"
 
 lint-js: ## Lint JavaScript files
 	@echo "$(BLUE)Linting JavaScript files...$(NC)"
+	@$(MAKE) ensure-deps
 	npx eslint "**/*.js" --ignore-pattern "**/*.min.js" || (echo "$(RED)JavaScript linting failed$(NC)" && exit 1)
 	@echo "$(GREEN)JavaScript linting passed$(NC)"
 
 format: ## Format code with Prettier
 	@echo "$(BLUE)Formatting code...$(NC)"
+	@$(MAKE) ensure-deps
 	npx prettier --write "**/*.{html,css,js,json,md}"
 	@echo "$(GREEN)Code formatting completed$(NC)"
 
 format-check: ## Check code formatting
 	@echo "$(BLUE)Checking code formatting...$(NC)"
+	@$(MAKE) ensure-deps
 	npx prettier --check "**/*.{html,css,js,json,md}" || (echo "$(RED)Code formatting check failed$(NC)" && exit 1)
 	@echo "$(GREEN)Code formatting check passed$(NC)"
 
@@ -111,6 +133,7 @@ security-secrets: ## Check for hardcoded secrets
 .PHONY: validate-html
 validate-html: ## Validate HTML files
 	@echo "$(BLUE)Validating HTML files...$(NC)"
+	@$(MAKE) ensure-deps
 	npx html-validate "**/*.html" || (echo "$(RED)HTML validation failed$(NC)" && exit 1)
 	@echo "$(GREEN)HTML validation passed$(NC)"
 
@@ -122,8 +145,9 @@ accessibility: accessibility-axe accessibility-pa11y ## Run all accessibility te
 
 accessibility-axe: serve ## Run axe-core accessibility tests
 	@echo "$(BLUE)Running axe-core accessibility tests...$(NC)"
+	@$(MAKE) ensure-deps
 	@sleep 3
-	axe http://$(SERVE_HOST):$(PORT) --reporter json --output-file axe-results.json || true
+	npx axe http://$(SERVE_HOST):$(PORT) --save axe-results.json || true
 	@if [ -f axe-results.json ]; then \
 		echo "$(BLUE)Axe accessibility results:$(NC)"; \
 		cat axe-results.json; \
@@ -132,8 +156,9 @@ accessibility-axe: serve ## Run axe-core accessibility tests
 
 accessibility-pa11y: serve ## Run pa11y accessibility tests
 	@echo "$(BLUE)Running pa11y accessibility tests...$(NC)"
+	@$(MAKE) ensure-deps
 	@sleep 3
-	pa11y http://$(SERVE_HOST):$(PORT) --reporter json > pa11y-results.json || true
+	npx pa11y http://$(SERVE_HOST):$(PORT) --reporter json > pa11y-results.json || true
 	@if [ -f pa11y-results.json ]; then \
 		echo "$(BLUE)Pa11y accessibility results:$(NC)"; \
 		cat pa11y-results.json; \
@@ -146,8 +171,9 @@ accessibility-pa11y: serve ## Run pa11y accessibility tests
 .PHONY: lighthouse
 lighthouse: serve ## Run Lighthouse performance and SEO tests
 	@echo "$(BLUE)Running Lighthouse CI...$(NC)"
+	@$(MAKE) ensure-deps
 	@sleep 3
-	lhci autorun \
+	npx lhci autorun \
 		--collect.url=http://$(SERVE_HOST):$(PORT) \
 		--collect.numberOfRuns=3 \
 		--assert.assertions.categories:performance=0.8 \
@@ -163,48 +189,10 @@ lighthouse: serve ## Run Lighthouse performance and SEO tests
 .PHONY: test-browser test-browser-setup
 test-browser: test-browser-setup serve ## Run cross-browser tests with Playwright
 	@echo "$(BLUE)Running cross-browser tests...$(NC)"
+	@$(MAKE) ensure-deps
 	@sleep 3
 	@mkdir -p tests
-	@cat > playwright.config.js << 'EOF'
-	module.exports = {
-		testDir: './tests',
-		use: {
-			baseURL: 'http://$(SERVE_HOST):$(PORT)',
-		},
-		projects: [
-			{ name: 'chromium', use: { ...require('@playwright/test').devices['Desktop Chrome'] } },
-			{ name: 'firefox', use: { ...require('@playwright/test').devices['Desktop Firefox'] } },
-			{ name: 'webkit', use: { ...require('@playwright/test').devices['Desktop Safari'] } },
-		],
-		webServer: {
-			command: 'python3 -m http.server $(PORT)',
-			port: $(PORT),
-			reuseExistingServer: !process.env.CI,
-		},
-	};
-	EOF
-	@cat > tests/basic.spec.js << 'EOF'
-	const { test, expect } = require('@playwright/test');
-	
-	test('homepage loads correctly', async ({ page }) => {
-		await page.goto('/');
-		await expect(page.locator('h1')).toContainText('Gavin Stewart');
-		await expect(page.locator('title')).toContainText('Gavin Stewart');
-	});
-	
-	test('navigation works', async ({ page }) => {
-		await page.goto('/');
-		await page.click('a[href="#about"]');
-		await expect(page.locator('#about')).toBeVisible();
-	});
-	
-	test('responsive design', async ({ page }) => {
-		await page.goto('/');
-		await page.setViewportSize({ width: 375, height: 667 });
-		await expect(page.locator('.hero')).toBeVisible();
-	});
-	EOF
-	npx playwright test || true
+	BASE_URL=http://$(SERVE_HOST):$(PORT) npx playwright test || true
 	@echo "$(GREEN)Cross-browser tests completed$(NC)"
 
 test-browser-setup: ## Setup Playwright browsers
@@ -216,15 +204,27 @@ test-browser-setup: ## Setup Playwright browsers
 # DEVELOPMENT SERVER
 # ============================================================================
 .PHONY: serve serve-stop
-serve: ## Start local development server
+serve: serve-stop ## Start local development server
 	@echo "$(BLUE)Starting local server on http://$(SERVE_HOST):$(PORT)...$(NC)"
-	@python3 -m http.server $(PORT) &
+	@python3 -m http.server $(PORT) & echo $$! > $(SERVER_PID_FILE)
+	@sleep 1
 	@echo "$(GREEN)Server started. Use 'make serve-stop' to stop it.$(NC)"
 
 serve-stop: ## Stop local development server
-	@echo "$(BLUE)Stopping local server...$(NC)"
-	@pkill -f "python3 -m http.server $(PORT)" || true
-	@echo "$(GREEN)Server stopped$(NC)"
+	@if [ -f $(SERVER_PID_FILE) ]; then \
+		PID=$$(cat $(SERVER_PID_FILE)); \
+		if kill -0 $$PID 2>/dev/null; then \
+			echo "$(BLUE)Stopping local server (PID: $$PID)...$(NC)"; \
+			kill $$PID; \
+			rm -f $(SERVER_PID_FILE); \
+			echo "$(GREEN)Server stopped$(NC)"; \
+		else \
+			echo "$(YELLOW)No running server found for PID: $$PID$(NC)"; \
+			rm -f $(SERVER_PID_FILE); \
+		fi; \
+	else \
+		echo "$(YELLOW)No server PID file found. Nothing to stop.$(NC)"; \
+	fi
 
 # ============================================================================
 # CI TARGETS
