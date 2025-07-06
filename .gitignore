@@ -97,6 +97,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+.server.pid
 
 # Editor/IDE
 .vscode/
