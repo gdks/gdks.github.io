@@ -2,16 +2,16 @@ name: Continuous Integration
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
   push:
-    branches: [develop, feature/*, bugfix/*, hotfix/*]
+    branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
 
 env:
   NODE_VERSION: '18'
 
 jobs:
   # ============================================================================
-  # CI JOBS - Quality gates before merge
+  # CI JOBS - Quality gates for all branches
   # ============================================================================
 
   # Static Analysis & Code Quality
