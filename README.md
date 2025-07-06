@@ -38,31 +38,34 @@ This is the personal portfolio website of **Gavin Stewart**, a Software Engineer
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | HTML5, CSS3, JavaScript (ES6+) |
-| **Styling** | Custom CSS, Font Awesome Icons, Google Fonts |
-| **Build Tools** | NPM, Prettier, HTMLHint, Stylelint, ESLint |
-| **Testing** | Playwright, Lighthouse, axe-core, Pa11y |
-| **Deployment** | GitHub Pages, GitHub Actions |
-| **Security** | Trivy, TruffleHog, Dependabot |
+| Category        | Technologies                                 |
+| --------------- | -------------------------------------------- |
+| **Frontend**    | HTML5, CSS3, JavaScript (ES6+)               |
+| **Styling**     | Custom CSS, Font Awesome Icons, Google Fonts |
+| **Build Tools** | NPM, Prettier, HTMLHint, Stylelint, ESLint   |
+| **Testing**     | Playwright, Lighthouse, axe-core, Pa11y      |
+| **Deployment**  | GitHub Pages, GitHub Actions                 |
+| **Security**    | Trivy, TruffleHog, Dependabot                |
 
 ## 📊 Quality Assurance
 
 This project maintains high quality standards through comprehensive automated testing:
 
 ### 🔍 Code Quality
+
 - **HTML Validation**: W3C HTML5 validator
 - **CSS Linting**: Stylelint with standard configuration
 - **JavaScript Linting**: ESLint with recommended rules
 - **Code Formatting**: Prettier for consistent code style
 
 ### 🛡️ Security
+
 - **Vulnerability Scanning**: Trivy security scanner
 - **Secret Detection**: TruffleHog for hardcoded secrets
 - **Dependency Scanning**: Automated security updates
 
 ### 🎯 Performance & Accessibility
+
 - **Lighthouse Audits**: Performance, Accessibility, Best Practices, SEO
 - **Cross-browser Testing**: Chrome, Firefox, Safari compatibility
 - **Accessibility Testing**: axe-core and Pa11y validation
@@ -71,6 +74,7 @@ This project maintains high quality standards through comprehensive automated te
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ (for development tools)
 - Modern web browser
 - Git
@@ -78,21 +82,24 @@ This project maintains high quality standards through comprehensive automated te
 ### Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/gdks/gdks.github.io.git
    cd gdks.github.io
    ```
 
 2. **Install development dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start local server**
+
    ```bash
    # Using Python (recommended)
    python3 -m http.server 8000
-   
+
    # Or using Node.js
    npx http-server -p 8000
    ```
@@ -102,27 +109,196 @@ This project maintains high quality standards through comprehensive automated te
    http://localhost:8000
    ```
 
-### 🧪 Running Tests
+## 🧪 Local CI Framework
+
+This project includes a comprehensive local CI framework using Make that mirrors the GitHub Actions workflow. This allows you to run all CI checks locally before pushing code.
+
+### Quick Start
 
 ```bash
-# Install test dependencies
-npm install
+# Install dependencies
+make install
 
-# Run all quality checks
-npm run lint:html
-npm run lint:css
-npm run lint:js
-npm run format:check
+# Run quick CI checks (linting, formatting, HTML validation)
+make ci
 
-# Run accessibility tests
-npm run test:a11y
+# Start local development server
+make serve
 
-# Run performance tests
-npm run test:lighthouse
-
-# Run cross-browser tests
-npm run test:browsers
+# Run full CI suite (including accessibility, performance, and browser tests)
+make ci-full
 ```
+
+### Available Targets
+
+#### Setup & Installation
+
+- `make install` - Install all dependencies (dev + global tools)
+- `make install-dev` - Install development dependencies only
+- `make install-global` - Install global tools for CI (axe-core, pa11y, lighthouse, playwright)
+
+#### Code Quality
+
+- `make lint` - Run all linting checks (HTML, CSS, JavaScript)
+- `make lint-html` - Lint HTML files with htmlhint
+- `make lint-css` - Lint CSS files with stylelint
+- `make lint-js` - Lint JavaScript files with ESLint
+- `make format` - Format code with Prettier
+- `make format-check` - Check code formatting without modifying files
+
+#### Security
+
+- `make security` - Run all security checks
+- `make security-trivy` - Run Trivy vulnerability scanner
+- `make security-secrets` - Check for hardcoded secrets with TruffleHog
+
+#### Validation & Testing
+
+- `make validate-html` - Validate HTML files with html5validator
+- `make accessibility` - Run all accessibility tests (axe-core + pa11y)
+- `make lighthouse` - Run Lighthouse performance and SEO tests
+- `make test-browser` - Run cross-browser tests with Playwright
+
+#### Development Server
+
+- `make serve` - Start local development server on port 8000
+- `make serve-stop` - Stop local development server
+
+#### CI Targets
+
+- `make ci` - Run quick CI checks (no server required)
+- `make ci-quick` - Run quick CI checks (linting, formatting, HTML validation)
+- `make ci-full` - Run full CI checks (includes accessibility, performance, browser tests)
+
+#### Utility
+
+- `make clean` - Clean up generated files and stop server
+- `make check-deps` - Check if required tools are installed
+- `make status` - Show current status (branch, node version, server status)
+
+### Prerequisites for Full CI
+
+These tools are optional and will be installed automatically when needed:
+
+- **Trivy** - For vulnerability scanning
+
+  ```bash
+  # macOS
+  brew install trivy
+
+  # Ubuntu/Debian
+  sudo apt-get install wget apt-transport-https gnupg lsb-release
+  wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+  echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+  sudo apt-get update
+  sudo apt-get install trivy
+  ```
+
+- **TruffleHog** - For secrets detection
+
+  ```bash
+  # macOS
+  brew install trufflesecurity/trufflehog/trufflehog
+
+  # Or via pip
+  pip install trufflehog
+  ```
+
+- **html5validator** - For HTML validation
+  ```bash
+  pip install html5validator
+  ```
+
+### Development Workflow
+
+1. Start development server: `make serve`
+2. Make changes to your code
+3. Run quick checks: `make ci-quick`
+4. If quick checks pass, run full suite: `make ci-full`
+5. Commit and push when all checks pass
+
+## 🔄 CI/CD Pipeline
+
+The project uses a comprehensive GitHub Actions pipeline with two main workflows:
+
+### CI Pipeline (Continuous Integration)
+
+Runs on **PRs** and **feature branches** for quality gates before merge.
+
+**Jobs:**
+
+- **Code Quality**: HTML/CSS/JS linting + formatting
+- **Security Scan**: Vulnerability and secrets detection
+- **HTML Validation**: W3C HTML5 validation
+- **Web Standards**: Accessibility testing (axe-core + pa11y)
+- **Lighthouse**: Performance & SEO testing
+- **Cross-browser Testing**: Playwright tests across Chrome, Firefox, Safari
+
+### CD Pipeline (Continuous Deployment)
+
+Runs on **main branch** pushes to deploy after all quality gates pass.
+
+**Additional Features:**
+
+- **Automated Deployment**: GitHub Pages deployment
+- **Artifact Management**: Test results and reports
+- **Notifications**: Deployment status updates
+
+### Pipeline Flow
+
+```
+PULL REQUESTS & FEATURE BRANCHES:
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
+│                 │  │                 │  │                 │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
+                                    │
+                                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Lighthouse    │  │ Cross-Browser   │  │   CI Summary    │
+│   Testing       │  │ Testing         │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+
+MAIN BRANCH (after merge):
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
+│                 │  │                 │  │                 │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
+                                    │
+                                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│   Lighthouse    │  │ Cross-browser   │  │                 │
+│   Testing       │  │ Testing         │  │                 │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+                                    │
+                                    ▼
+                        ┌─────────────────┐
+                        │   Deployment    │
+                        │                 │
+                        └─────────────────┘
+                                    │
+                                    ▼
+                        ┌─────────────────┐
+                        │ Notifications   │
+                        │                 │
+                        └─────────────────┘
+```
+
+### Quality Gates
+
+**Lighthouse Thresholds:**
+
+- Performance: 80%
+- Accessibility: 90%
+- Best Practices: 80%
+- SEO: 80%
+
+**Security Standards:**
+
+- No hardcoded secrets
+- No critical vulnerabilities
+- Dependency security scanning
+- Regular security audits
 
 ## 📁 Project Structure
 
@@ -135,7 +311,6 @@ npm run test:browsers
 │   ├── main.js           # Main application logic
 │   └── vendor/           # Third-party libraries
 ├── img/                   # Images and assets
-├── doc/                   # Documentation
 ├── .github/               # GitHub Actions workflows
 │   └── workflows/
 │       ├── ci-cd.yml     # Continuous deployment
@@ -146,6 +321,7 @@ npm run test:browsers
 ├── 404.html              # Custom 404 page
 ├── robots.txt            # Search engine instructions
 ├── site.webmanifest      # PWA manifest
+├── Makefile              # Local CI framework
 └── README.md             # This file
 ```
 
@@ -191,10 +367,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 - Built with HTML5 Boilerplate
 - Icons by Font Awesome
 - Typography by Google Fonts
-- Hosted on GitHub Pages
-
----
 
 <div align="center">
-  <strong>⚡ Crafted with passion in Edinburgh, Scotland 🏴󠁧󠁢󠁳󠁣󠁴󠁿</strong>
+  <strong>⚡ Crafted with passion in Edinburgh, Scotland 🏴󠁧󠁢󠁳󠁣��󠁿</strong>
 </div>
