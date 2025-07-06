@@ -7,11 +7,12 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspaces/gdks.github.io:cached
+      - /var/run/docker.sock:/var/run/docker.sock
     command: sleep infinity
     environment:
       - NODE_ENV=development
     ports:
-      - "5500:5500"
+      - '5500:5500'
     networks:
       - portfolio-network
 

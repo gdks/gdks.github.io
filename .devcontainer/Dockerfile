@@ -6,7 +6,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     unzip \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
+
+# Install act for running GitHub Actions locally
+RUN curl https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
 
 # Install global npm packages for web development
 RUN npm install -g \
