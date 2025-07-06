@@ -112,7 +112,7 @@ security-trivy: ## Run Trivy vulnerability scanner
 		echo "$(YELLOW)Trivy not found. Install with: brew install trivy (macOS) or see https://aquasecurity.github.io/trivy/latest/getting-started/installation/$(NC)"; \
 		exit 1; \
 	fi
-	trivy fs --format json --output trivy-results.json . || true
+	trivy fs --format json --output trivy-results.json .
 	@echo "$(GREEN)Trivy scan completed$(NC)"
 
 security-secrets: ## Check for hardcoded secrets
@@ -121,7 +121,7 @@ security-secrets: ## Check for hardcoded secrets
 		echo "$(YELLOW)TruffleHog not found. Install with: brew install trufflesecurity/trufflehog/trufflehog (macOS) or see https://github.com/trufflesecurity/trufflehog$(NC)"; \
 		exit 1; \
 	fi
-	trufflehog --debug --only-verified . || true
+	trufflehog --debug --only-verified .
 	@echo "$(GREEN)Secrets scan completed$(NC)"
 
 # ============================================================================
