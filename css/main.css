@@ -894,14 +894,6 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-.social-link.twitter {
-  background: linear-gradient(135deg, #1da1f2, #0d8bd9);
-}
-
-.social-link.medium {
-  background: linear-gradient(135deg, #00ab6c, #00d084);
-}
-
 .social-link.github {
   background: linear-gradient(135deg, #333, #24292e);
 }
