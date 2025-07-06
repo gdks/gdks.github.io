@@ -41,9 +41,7 @@ jobs:
 
       - name: JavaScript Linting
         run: |
-          echo '{"extends": ["eslint:recommended"], "env": {"browser": true, "es2021": true}, "parserOptions": {"ecmaVersion": 12, "sourceType": "module"}}' > .eslintrc.json
           npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
-          npx prettier --write .eslintrc.json
 
       - name: Code Formatting Check
         run: npx prettier --check "**/*.{html,css,js,json,md}"

@@ -244,7 +244,7 @@ ci-full: ci-quick accessibility lighthouse test-browser ## Run full CI checks (r
 .PHONY: clean clean-reports
 clean: clean-reports serve-stop ## Clean up generated files and stop server
 	@echo "$(BLUE)Cleaning up...$(NC)"
-	@rm -f .stylelintrc.json .eslintrc.json
+	@rm -f .stylelintrc.json
 	@rm -f trivy-results.json axe-results.json pa11y-results.json
 	@rm -rf .lighthouseci/ playwright-report/ tests/
 	@echo "$(GREEN)Cleanup completed$(NC)"
