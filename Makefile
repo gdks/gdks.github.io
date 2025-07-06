@@ -144,7 +144,7 @@ accessibility-axe: serve ## Run axe-core accessibility tests
 	@echo "$(BLUE)Running axe-core accessibility tests...$(NC)"
 	@$(MAKE) ensure-deps
 	@sleep 3
-	npx axe http://$(SERVE_HOST):$(PORT) --save axe-results.json || true
+	npx axe http://$(SERVE_HOST):$(PORT) --save axe-results.json
 	@if [ -f axe-results.json ]; then \
 		echo "$(BLUE)Axe accessibility results:$(NC)"; \
 		cat axe-results.json; \
@@ -155,7 +155,7 @@ accessibility-pa11y: serve ## Run pa11y accessibility tests
 	@echo "$(BLUE)Running pa11y accessibility tests...$(NC)"
 	@$(MAKE) ensure-deps
 	@sleep 3
-	npx pa11y http://$(SERVE_HOST):$(PORT) --reporter json > pa11y-results.json || true
+	npx pa11y http://$(SERVE_HOST):$(PORT) --reporter json > pa11y-results.json
 	@if [ -f pa11y-results.json ]; then \
 		echo "$(BLUE)Pa11y accessibility results:$(NC)"; \
 		cat pa11y-results.json; \
@@ -177,7 +177,7 @@ lighthouse: serve ## Run Lighthouse performance and SEO tests
 		--assert.assertions.categories:accessibility=0.9 \
 		--assert.assertions.categories:best-practices=0.8 \
 		--assert.assertions.categories:seo=0.8 \
-		--upload.target=temporary-public-storage || true
+		--upload.target=temporary-public-storage
 	@echo "$(GREEN)Lighthouse tests completed$(NC)"
 
 # ============================================================================
@@ -189,7 +189,7 @@ test-browser: test-browser-setup serve ## Run cross-browser tests with Playwrigh
 	@$(MAKE) ensure-deps
 	@sleep 3
 	@mkdir -p tests
-	BASE_URL=http://$(SERVE_HOST):$(PORT) npx playwright test || true
+	BASE_URL=http://$(SERVE_HOST):$(PORT) npx playwright test
 	@echo "$(GREEN)Cross-browser tests completed$(NC)"
 
 test-browser-setup: ## Setup Playwright browsers

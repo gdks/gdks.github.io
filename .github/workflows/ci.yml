@@ -111,7 +111,7 @@ jobs:
 
       - name: Accessibility Testing with axe-core
         run: |
-          npx axe http://localhost:8000 --save axe-results.json || true
+          npx axe http://localhost:8000 --save axe-results.json
           if [ -f axe-results.json ]; then
             echo "Axe accessibility results:"
             cat axe-results.json
@@ -119,7 +119,7 @@ jobs:
 
       - name: Accessibility Testing with pa11y
         run: |
-          npx pa11y http://localhost:8000 --reporter json > pa11y-results.json || true
+          npx pa11y http://localhost:8000 --reporter json > pa11y-results.json
           if [ -f pa11y-results.json ]; then
             echo "Pa11y accessibility results:"
             cat pa11y-results.json
@@ -156,7 +156,14 @@ jobs:
 
       - name: Run Lighthouse CI
         run: |
-          npx lhci autorun --collect.url=http://localhost:8000 --collect.numberOfRuns=3 --assert.assertions.categories:performance=0.8 --assert.assertions.categories:accessibility=0.9 --assert.assertions.categories:best-practices=0.8 --assert.assertions.categories:seo=0.8 --upload.target=temporary-public-storage
+          npx lhci autorun \
+            --collect.url=http://localhost:8000 \
+            --collect.numberOfRuns=3 \
+            --assert.assertions.categories:performance=0.8 \
+            --assert.assertions.categories:accessibility=0.9 \
+            --assert.assertions.categories:best-practices=0.8 \
+            --assert.assertions.categories:seo=0.8 \
+            --upload.target=temporary-public-storage
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
