@@ -190,11 +190,20 @@ jobs:
 
       - name: Run cross-browser tests
         run: |
+          # Use different ports for each browser to avoid conflicts
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            PORT=8001
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            PORT=8002
+          else
+            PORT=8003
+          fi
+
           cat > playwright.config.js << 'EOF'
           module.exports = {
             testDir: './tests',
             use: {
-              baseURL: 'http://localhost:8000',
+              baseURL: 'http://localhost:' + process.env.PORT,
             },
             projects: [
               { name: 'chromium', use: { ...require('@playwright/test').devices['Desktop Chrome'] } },
@@ -202,12 +211,14 @@ jobs:
               { name: 'webkit', use: { ...require('@playwright/test').devices['Desktop Safari'] } },
             ],
             webServer: {
-              command: 'python3 -m http.server 8000',
-              port: 8000,
+              command: 'python3 -m http.server ' + process.env.PORT,
+              port: parseInt(process.env.PORT),
               reuseExistingServer: false,
             },
           };
           EOF
+
+          export PORT=$PORT
 
           mkdir -p tests
           cat > tests/basic.spec.js << 'EOF'
@@ -216,7 +227,7 @@ jobs:
           test('homepage loads correctly', async ({ page }) => {
             await page.goto('/');
             await expect(page.locator('h1')).toContainText('Gavin Stewart');
-            await expect(page.locator('title')).toContainText('Gavin Stewart');
+            await expect(await page.title()).toContain('Gavin Stewart');
           });
 
           test('navigation works', async ({ page }) => {
