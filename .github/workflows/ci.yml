@@ -37,13 +37,13 @@ jobs:
 
       - name: CSS Linting
         run: |
-          echo '{"extends": "stylelint-config-standard", "rules": {"at-rule-no-unknown": [true, {"ignoreAtRules": ["supports"]}]}}' > .stylelintrc.json
           npx stylelint "**/*.css"
 
       - name: JavaScript Linting
         run: |
           echo '{"extends": ["eslint:recommended"], "env": {"browser": true, "es2021": true}, "parserOptions": {"ecmaVersion": 12, "sourceType": "module"}}' > .eslintrc.json
           npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
+          npx prettier --write .eslintrc.json
 
       - name: Code Formatting Check
         run: npx prettier --check "**/*.{html,css,js,json,md}"
@@ -205,7 +205,7 @@ jobs:
             webServer: {
               command: 'python3 -m http.server 8000',
               port: 8000,
-              reuseExistingServer: !process.env.CI,
+              reuseExistingServer: false,
             },
           };
           EOF
