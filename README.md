@@ -219,86 +219,139 @@ These tools are optional and will be installed automatically when needed:
 
 ## 🔄 CI/CD Pipeline
 
-The project uses a comprehensive GitHub Actions pipeline with two main workflows:
+The project uses a comprehensive GitHub Actions pipeline with automated quality gates, security scanning, and deployment processes.
 
-### CI Pipeline (Continuous Integration)
+### 🏗️ Pipeline Architecture
 
-Runs on **PRs** and **feature branches** for quality gates before merge.
+```mermaid
+graph TB
+    %% Event Triggers
+    PR[Pull Request] --> CI[Continuous Integration]
+    Push[Push to Feature Branch] --> CI
+    Main[Push to Main] --> CD[Continuous Deployment]
 
-**Jobs:**
+    %% CI Pipeline Jobs
+    CI --> CodeQuality[Code Quality Checks]
+    CI --> SecurityScan[Security Scanning]
+    CI --> HTMLValidation[HTML Validation]
+    CI --> WebStandards[Web Standards & Accessibility]
+    CI --> Lighthouse[Performance & SEO Testing]
+    CI --> CrossBrowser[Cross-Browser Testing]
 
-- **Code Quality**: HTML/CSS/JS linting + formatting
-- **Security Scan**: Vulnerability and secrets detection
-- **HTML Validation**: W3C HTML5 validation
-- **Web Standards**: Accessibility testing (axe-core + pa11y)
-- **Lighthouse**: Performance & SEO testing
-- **Cross-browser Testing**: Playwright tests across Chrome, Firefox, Safari
+    %% Code Quality Details
+    CodeQuality --> HTMLHint[HTML Linting]
+    CodeQuality --> Stylelint[CSS Linting]
+    CodeQuality --> ESLint[JavaScript Linting]
+    CodeQuality --> Prettier[Code Formatting]
 
-### CD Pipeline (Continuous Deployment)
+    %% Security Details
+    SecurityScan --> Trivy[Trivy Vulnerability Scanner]
+    SecurityScan --> TruffleHog[Secrets Detection]
+    SecurityScan --> OWASP[OWASP ZAP Baseline]
 
-Runs on **main branch** pushes to deploy after all quality gates pass.
+    %% Web Standards Details
+    WebStandards --> AxeCore[axe-core Testing]
+    WebStandards --> Pa11y[Pa11y Accessibility]
 
-**Additional Features:**
+    %% Performance Details
+    Lighthouse --> Performance[Performance Score ≥80%]
+    Lighthouse --> Accessibility[Accessibility Score ≥90%]
+    Lighthouse --> BestPractices[Best Practices ≥80%]
+    Lighthouse --> SEO[SEO Score ≥80%]
 
-- **Automated Deployment**: GitHub Pages deployment
-- **Artifact Management**: Test results and reports
-- **Notifications**: Deployment status updates
+    %% Cross-Browser Details
+    CrossBrowser --> Chrome[Chrome Testing]
+    CrossBrowser --> Firefox[Firefox Testing]
+    CrossBrowser --> Edge[Edge Testing]
 
-### Pipeline Flow
+    %% CD Pipeline
+    CD --> Deploy[Deploy to GitHub Pages]
+    Deploy --> Notify[Deployment Notifications]
 
+    %% Local Development
+    LocalDev[Local Development] --> MakeCI[Local CI via Makefile]
+    MakeCI --> LocalTests[Local Testing Suite]
+
+    %% Styling
+    classDef ciJob fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef securityJob fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef qualityJob fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef deployJob fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+
+    class CodeQuality,HTMLValidation,WebStandards,Lighthouse,CrossBrowser ciJob
+    class SecurityScan,Trivy,TruffleHog,OWASP securityJob
+    class HTMLHint,Stylelint,ESLint,Prettier,AxeCore,Pa11y,Performance,Accessibility,BestPractices,SEO qualityJob
+    class Deploy,Notify deployJob
 ```
-PULL REQUESTS & FEATURE BRANCHES:
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
-│                 │  │                 │  │                 │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
-                                    │
-                                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Lighthouse    │  │ Cross-Browser   │  │   CI Summary    │
-│   Testing       │  │ Testing         │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
 
-MAIN BRANCH (after merge):
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Code Quality  │  │ Security Scan   │  │ HTML Validation │  │ Web Standards   │
-│                 │  │                 │  │                 │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
-                                    │
-                                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Lighthouse    │  │ Cross-browser   │  │                 │
-│   Testing       │  │ Testing         │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-                                    │
-                                    ▼
-                        ┌─────────────────┐
-                        │   Deployment    │
-                        │                 │
-                        └─────────────────┘
-                                    │
-                                    ▼
-                        ┌─────────────────┐
-                        │ Notifications   │
-                        │                 │
-                        └─────────────────┘
+### 📋 Pipeline Workflows
+
+#### 🔍 **Continuous Integration (`ci.yml`)**
+
+**Triggers:** Pull Requests, Feature Branches, Main Branch
+
+| Job                 | Purpose                           | Tools                                 | Thresholds                  |
+| ------------------- | --------------------------------- | ------------------------------------- | --------------------------- |
+| **Code Quality**    | Static analysis & formatting      | HTMLHint, Stylelint, ESLint, Prettier | Zero linting errors         |
+| **Security Scan**   | Vulnerability & secrets detection | Trivy, TruffleHog                     | No critical vulnerabilities |
+| **HTML Validation** | W3C HTML5 compliance              | html5validator                        | Zero validation errors      |
+| **Web Standards**   | Accessibility testing             | axe-core, Pa11y                       | WCAG 2.1 AA compliance      |
+| **Lighthouse**      | Performance & SEO audit           | Lighthouse CI                         | Performance ≥80%, A11Y ≥90% |
+| **Cross-Browser**   | Browser compatibility             | Playwright                            | Chrome, Firefox, Edge       |
+
+#### 🚀 **Continuous Deployment (`ci-cd.yml`)**
+
+**Triggers:** Main Branch Pushes, Weekly Security Scans
+
+- **Automated Deployment** to GitHub Pages
+- **Artifact Management** for test reports
+- **Deployment Notifications**
+
+#### 🔒 **Security Scanning (`security-scan.yml`)**
+
+**Triggers:** Daily scheduled scans, Manual dispatch
+
+- **Daily Vulnerability Assessment** with Trivy
+- **OWASP ZAP Baseline** security testing
+- **Dependency Review** for security updates
+
+### 🛠️ Local Development Pipeline
+
+The project includes a comprehensive local CI framework using Make that mirrors the GitHub Actions workflow:
+
+```bash
+# Quick CI checks (no server required)
+make ci-quick
+
+# Full CI suite (includes accessibility, performance, browser tests)
+make ci-full
+
+# Individual checks
+make lint          # All linting
+make security      # Security scanning
+make accessibility # Accessibility testing
+make lighthouse    # Performance testing
 ```
 
-### Quality Gates
+### 📊 Quality Gates
 
-**Lighthouse Thresholds:**
+| Category           | Tool             | Threshold     | Purpose                    |
+| ------------------ | ---------------- | ------------- | -------------------------- |
+| **Performance**    | Lighthouse       | ≥80%          | Core Web Vitals compliance |
+| **Accessibility**  | axe-core + Pa11y | ≥90%          | WCAG 2.1 AA compliance     |
+| **Best Practices** | Lighthouse       | ≥80%          | Modern web standards       |
+| **SEO**            | Lighthouse       | ≥80%          | Search engine optimization |
+| **Security**       | Trivy            | Zero critical | Vulnerability prevention   |
+| **Code Quality**   | Linters          | Zero errors   | Maintainable codebase      |
 
-- Performance: 80%
-- Accessibility: 90%
-- Best Practices: 80%
-- SEO: 80%
+### 🔄 Pipeline Flow
 
-**Security Standards:**
-
-- No hardcoded secrets
-- No critical vulnerabilities
-- Dependency security scanning
-- Regular security audits
+1. **Development** → Local testing with `make ci-full`
+2. **Pull Request** → Automated CI checks in parallel
+3. **Quality Gates** → All checks must pass
+4. **Merge to Main** → Triggers deployment pipeline
+5. **Deployment** → Automatic deployment to GitHub Pages
+6. **Monitoring** → Continuous security and performance monitoring
 
 ## 📁 Project Structure
 
