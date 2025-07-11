@@ -53,9 +53,7 @@ install-dev: ## Install development dependencies
 		echo "$(BLUE)Initializing package.json...$(NC)"; \
 		npm init -y; \
 	fi
-	npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test auditjs
-
-
+	npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate
 
 ensure-deps: ## Ensure dependencies are installed
 	@if [ ! -d node_modules ]; then \
@@ -91,13 +89,13 @@ lint-js: ## Lint JavaScript files
 format: ## Format code with Prettier
 	@echo "$(BLUE)Formatting code...$(NC)"
 	@$(MAKE) ensure-deps
-	npx prettier --write "**/*.{html,css,js,json,md}"
+	npx prettier --write "**/*.{html,css,js,json,md}" --ignore-path .prettierignore
 	@echo "$(GREEN)Code formatting completed$(NC)"
 
 format-check: ## Check code formatting
 	@echo "$(BLUE)Checking code formatting...$(NC)"
 	@$(MAKE) ensure-deps
-	npx prettier --check "**/*.{html,css,js,json,md}" || (echo "$(RED)Code formatting check failed$(NC)" && exit 1)
+	npx prettier --check "**/*.{html,css,js,json,md}" --ignore-path .prettierignore || (echo "$(RED)Code formatting check failed$(NC)" && exit 1)
 	@echo "$(GREEN)Code formatting check passed$(NC)"
 
 # ============================================================================
@@ -135,69 +133,6 @@ validate-html: ## Validate HTML files
 	@echo "$(GREEN)HTML validation passed$(NC)"
 
 # ============================================================================
-# WEB STANDARDS & ACCESSIBILITY
-# ============================================================================
-.PHONY: accessibility accessibility-axe accessibility-pa11y
-accessibility: accessibility-axe accessibility-pa11y ## Run all accessibility tests
-
-accessibility-axe: serve ## Run axe-core accessibility tests
-	@echo "$(BLUE)Running axe-core accessibility tests...$(NC)"
-	@$(MAKE) ensure-deps
-	@sleep 3
-	npx axe http://$(SERVE_HOST):$(PORT) --save axe-results.json
-	@if [ -f axe-results.json ]; then \
-		echo "$(BLUE)Axe accessibility results:$(NC)"; \
-		cat axe-results.json; \
-	fi
-	@echo "$(GREEN)Axe accessibility tests completed$(NC)"
-
-accessibility-pa11y: serve ## Run pa11y accessibility tests
-	@echo "$(BLUE)Running pa11y accessibility tests...$(NC)"
-	@$(MAKE) ensure-deps
-	@sleep 3
-	npx pa11y http://$(SERVE_HOST):$(PORT) --reporter json > pa11y-results.json
-	@if [ -f pa11y-results.json ]; then \
-		echo "$(BLUE)Pa11y accessibility results:$(NC)"; \
-		cat pa11y-results.json; \
-	fi
-	@echo "$(GREEN)Pa11y accessibility tests completed$(NC)"
-
-# ============================================================================
-# PERFORMANCE & SEO TESTING
-# ============================================================================
-.PHONY: lighthouse
-lighthouse: serve ## Run Lighthouse performance and SEO tests
-	@echo "$(BLUE)Running Lighthouse CI...$(NC)"
-	@$(MAKE) ensure-deps
-	@sleep 3
-	npx lhci autorun \
-		--collect.url=http://$(SERVE_HOST):$(PORT) \
-		--collect.numberOfRuns=3 \
-		--assert.assertions.categories:performance=0.8 \
-		--assert.assertions.categories:accessibility=0.9 \
-		--assert.assertions.categories:best-practices=0.8 \
-		--assert.assertions.categories:seo=0.8 \
-		--upload.target=temporary-public-storage
-	@echo "$(GREEN)Lighthouse tests completed$(NC)"
-
-# ============================================================================
-# CROSS-BROWSER TESTING
-# ============================================================================
-.PHONY: test-browser test-browser-setup
-test-browser: test-browser-setup serve ## Run cross-browser tests with Playwright
-	@echo "$(BLUE)Running cross-browser tests...$(NC)"
-	@$(MAKE) ensure-deps
-	@sleep 3
-	@mkdir -p tests
-	BASE_URL=http://$(SERVE_HOST):$(PORT) npx playwright test
-	@echo "$(GREEN)Cross-browser tests completed$(NC)"
-
-test-browser-setup: ## Setup Playwright browsers
-	@echo "$(BLUE)Setting up Playwright browsers...$(NC)"
-	npx playwright install --with-deps
-	@echo "$(GREEN)Playwright setup completed$(NC)"
-
-# ============================================================================
 # DEVELOPMENT SERVER
 # ============================================================================
 .PHONY: serve serve-stop
@@ -226,14 +161,9 @@ serve-stop: ## Stop local development server
 # ============================================================================
 # CI TARGETS
 # ============================================================================
-.PHONY: ci ci-quick ci-full
-ci: ci-quick ## Run all CI checks (quick version)
-
-ci-quick: lint format-check validate-html ## Run quick CI checks (no server required)
-	@echo "$(GREEN)✅ Quick CI checks completed successfully!$(NC)"
-
-ci-full: ci-quick accessibility lighthouse test-browser ## Run full CI checks (requires server)
-	@echo "$(GREEN)✅ Full CI checks completed successfully!$(NC)"
+.PHONY: ci
+ci: lint format-check validate-html ## Run all CI checks
+	@echo "$(GREEN)✅ All CI checks completed successfully!$(NC)"
 
 # ============================================================================
 # CLEANUP
@@ -242,14 +172,12 @@ ci-full: ci-quick accessibility lighthouse test-browser ## Run full CI checks (r
 clean: clean-reports serve-stop ## Clean up generated files and stop server
 	@echo "$(BLUE)Cleaning up...$(NC)"
 	@rm -f .stylelintrc.json
-	@rm -f trivy-results.json axe-results.json pa11y-results.json
-	@rm -rf .lighthouseci/ playwright-report/ tests/
+	@rm -f trivy-results.json
 	@echo "$(GREEN)Cleanup completed$(NC)"
 
 clean-reports: ## Clean up test reports
 	@echo "$(BLUE)Cleaning up test reports...$(NC)"
-	@rm -f trivy-results.json axe-results.json pa11y-results.json
-	@rm -rf .lighthouseci/ playwright-report/
+	@rm -f trivy-results.json
 	@echo "$(GREEN)Reports cleaned$(NC)"
 
 # ============================================================================

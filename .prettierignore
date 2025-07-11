@@ -1,1 +1,3 @@
-.stylelintrc.json 
+.stylelintrc.json
+node_modules/
+*.min.js 
