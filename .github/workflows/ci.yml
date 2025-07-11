@@ -86,3 +86,24 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           fail-on-severity: moderate
+
+  # ============================================================================
+  # DEPLOYMENT (Only on main branch)
+  # ============================================================================
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          force_orphan: true
