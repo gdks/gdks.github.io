@@ -1,21 +1,25 @@
-name: Continuous Integration
+name: CI/CD Pipeline
 
 on:
   pull_request:
     branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
   push:
     branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
+  schedule:
+    # Daily security scans at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '18'
 
 jobs:
   # ============================================================================
-  # CI JOBS - Quality gates for all branches
+  # CODE QUALITY CHECKS
   # ============================================================================
 
-  # Static Analysis & Code Quality
   code-quality:
+    name: Code Quality & Standards
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,24 +34,29 @@ jobs:
       - name: Install dependencies
         run: |
           npm init -y
-          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate @axe-core/cli pa11y lighthouse @lhci/cli @playwright/test
+          npm install --save-dev htmlhint stylelint stylelint-config-standard eslint prettier html-validate
 
       - name: HTML Linting
         run: npx htmlhint "**/*.html"
 
       - name: CSS Linting
-        run: |
-          npx stylelint "**/*.css"
+        run: npx stylelint "**/*.css"
 
       - name: JavaScript Linting
-        run: |
-          npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
+        run: npx eslint "**/*.js" --ignore-pattern "**/*.min.js"
 
       - name: Code Formatting Check
         run: npx prettier --check "**/*.{html,css,js,json,md}"
 
-  # Security Testing
+      - name: HTML Validation
+        run: npx html-validate "**/*.html"
+
+  # ============================================================================
+  # SECURITY CHECKS
+  # ============================================================================
+
   security-scan:
+    name: Security Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -61,6 +70,7 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
@@ -74,22 +84,17 @@ jobs:
           path: ./
           extra_args: --debug --only-verified
 
-  # HTML Validation
-  html-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: HTML5 Validator
-        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
         with:
-          root: ./
-          css: false
-          format: json
+          fail-on-severity: moderate
 
-  # Web Standards & Accessibility Testing
+  # ============================================================================
+  # WEB STANDARDS & ACCESSIBILITY
+  # ============================================================================
+
   web-standards:
+    name: Web Standards & Accessibility
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -102,7 +107,8 @@ jobs:
 
       - name: Install testing tools
         run: |
-          echo "Testing tools are now installed as local dependencies"
+          npm init -y
+          npm install --save-dev @axe-core/cli pa11y
 
       - name: Start local server
         run: |
@@ -134,8 +140,12 @@ jobs:
             axe-results.json
             pa11y-results.json
 
-  # Performance & SEO Testing
-  lighthouse:
+  # ============================================================================
+  # PERFORMANCE & SEO TESTING
+  # ============================================================================
+
+  performance:
+    name: Performance & SEO
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -147,7 +157,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Lighthouse CI
-        run: echo "Lighthouse CI is now installed as a local dependency"
+        run: |
+          npm init -y
+          npm install --save-dev @lhci/cli
 
       - name: Start local server
         run: |
@@ -172,8 +184,12 @@ jobs:
           name: lighthouse-reports-${{ github.run_number }}
           path: .lighthouseci/
 
-  # Cross-browser Testing
-  cross-browser-test:
+  # ============================================================================
+  # CROSS-BROWSER TESTING
+  # ============================================================================
+
+  cross-browser:
+    name: Cross-Browser Testing
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -199,107 +215,59 @@ jobs:
       - name: Install Playwright
         run: |
           npm init -y
-          npm install -D @playwright/test
-          npx playwright install --with-deps
+          npm install --save-dev @playwright/test
+          npx playwright install --with-deps ${{ matrix.browser }}
 
-      - name: Run cross-browser tests
+      - name: Start local server
         run: |
-          # Use different ports for each browser to avoid conflicts
-          if [ "${{ matrix.browser }}" = "chrome" ]; then
-            PORT=8001
-          elif [ "${{ matrix.browser }}" = "firefox" ]; then
-            PORT=8002
-          else
-            PORT=8003
-          fi
+          python3 -m http.server 8000 &
+          sleep 3
 
-          cat > playwright.config.js << 'EOF'
-          module.exports = {
-            testDir: './tests',
-            use: {
-              baseURL: 'http://localhost:' + process.env.PORT,
-            },
-            projects: [
-              { name: 'chromium', use: { ...require('@playwright/test').devices['Desktop Chrome'] } },
-              { name: 'firefox', use: { ...require('@playwright/test').devices['Desktop Firefox'] } },
-              { name: 'webkit', use: { ...require('@playwright/test').devices['Desktop Safari'] } },
-            ],
-            webServer: {
-              command: 'python3 -m http.server ' + process.env.PORT,
-              port: parseInt(process.env.PORT),
-              reuseExistingServer: false,
-            },
-          };
-          EOF
+      - name: Run Playwright tests
+        run: |
+          npx playwright test --project=${{ matrix.browser }} --reporter=list
 
-          export PORT=$PORT
-
-          mkdir -p tests
-          cat > tests/basic.spec.js << 'EOF'
-          const { test, expect } = require('@playwright/test');
-
-          test('homepage loads correctly', async ({ page }) => {
-            await page.goto('/');
-            await expect(page.locator('h1')).toContainText('Gavin Stewart');
-            await expect(await page.title()).toContain('Gavin Stewart');
-          });
-
-          test('navigation works', async ({ page }) => {
-            await page.goto('/');
-            await page.click('a[href="#about"]');
-            await expect(page.locator('#about')).toBeVisible();
-          });
-
-          test('responsive design', async ({ page }) => {
-            await page.goto('/');
-            await page.setViewportSize({ width: 375, height: 667 });
-            await expect(page.locator('.hero')).toBeVisible();
-          });
-          EOF
-
-          npx playwright test --workers=1 --timeout=10000
-
-      - name: Upload test results
+      - name: Upload Playwright test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.browser }}-${{ github.run_number }}
+          name: playwright-results-${{ matrix.browser }}-${{ github.run_number }}
           path: playwright-report/
 
-  # CI Summary
-  ci-summary:
+  # ============================================================================
+  # DEPLOYMENT (Only on main branch)
+  # ============================================================================
+
+  deploy:
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs:
-      [
-        code-quality,
-        security-scan,
-        html-validation,
-        web-standards,
-        lighthouse,
-        cross-browser-test,
-      ]
-    if: always()
+      [code-quality, security-scan, web-standards, performance, cross-browser]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: CI Results Summary
-        run: |
-          echo "## CI Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| HTML Validation | ${{ needs.html-validation.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Web Standards | ${{ needs.web-standards.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Lighthouse | ${{ needs.lighthouse.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Cross-browser Test | ${{ needs.cross-browser-test.result }} |" >> $GITHUB_STEP_SUMMARY
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          if [ "${{ needs.code-quality.result }}" == "success" ] && 
-             [ "${{ needs.security-scan.result }}" == "success" ] && 
-             [ "${{ needs.html-validation.result }}" == "success" ] && 
-             [ "${{ needs.web-standards.result }}" == "success" ] && 
-             [ "${{ needs.lighthouse.result }}" == "success" ] && 
-             [ "${{ needs.cross-browser-test.result }}" == "success" ]; then
-            echo "✅ All CI checks passed! Ready for merge." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Some CI checks failed. Please review and fix issues before merging." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          force_orphan: true
+
+  # ============================================================================
+  # EXTERNAL SECURITY SCAN (Scheduled)
+  # ============================================================================
+
+  external-security:
+    name: External Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'https://gdks.github.io'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
