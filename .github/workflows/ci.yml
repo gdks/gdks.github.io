@@ -5,9 +5,6 @@ on:
     branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
   push:
     branches: [main, master, develop, feature/*, bugfix/*, hotfix/*]
-  schedule:
-    # Daily security scans at 2 AM UTC
-    - cron: '0 2 * * *'
   workflow_dispatch:
 
 env:
@@ -256,18 +253,4 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
 
-  # ============================================================================
-  # EXTERNAL SECURITY SCAN (Scheduled)
-  # ============================================================================
 
-  external-security:
-    name: External Security Scan
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule'
-    steps:
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: 'https://gdks.github.io'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
