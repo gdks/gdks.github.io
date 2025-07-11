@@ -1,1 +1,1 @@
-node_modules/ 
+# No specific exclusions needed - html-validate handles node_modules automatically 

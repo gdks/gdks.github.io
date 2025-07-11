@@ -1,3 +1,8 @@
+# Generated files
 .stylelintrc.json
+
+# Dependencies
 node_modules/
+
+# Minified files
 *.min.js 
