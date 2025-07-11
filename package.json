@@ -1,0 +1,36 @@
+{
+  "name": "gdks-portfolio",
+  "version": "1.0.0",
+  "description": "Personal portfolio website of Gavin Stewart - Software Engineer and Engineering Leader",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "lint": "make lint",
+    "format": "make format",
+    "ci": "make ci"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gdks/gdks.github.io.git"
+  },
+  "keywords": [
+    "portfolio",
+    "software-engineer",
+    "web-development",
+    "accessibility"
+  ],
+  "author": "Gavin Stewart",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gdks/gdks.github.io/issues"
+  },
+  "homepage": "https://github.com/gdks/gdks.github.io#readme",
+  "devDependencies": {
+    "htmlhint": "^1.1.4",
+    "stylelint": "^15.10.3",
+    "stylelint-config-standard": "^34.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "html-validate": "^7.18.0"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Gavin Stewart Portfolio",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/gdks.github.io",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-json",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "ritwickdey.LiveServer",
+        "formulahendry.auto-rename-tag",
+        "ms-vscode.vscode-css-peek",
+        "ms-vscode.vscode-html-css-support"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.associations": {
+          "*.html": "html"
+        },
+        "emmet.includeLanguages": {
+          "html": "html"
+        },
+        "liveServer.settings.root": "/workspaces/gdks.github.io",
+        "liveServer.settings.port": 5500
+      }
+    }
+  },
+  "forwardPorts": [5500],
+  "postCreateCommand": "npm install"
+}

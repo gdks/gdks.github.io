@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspaces/gdks.github.io:cached
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sleep infinity
+    environment:
+      - NODE_ENV=development
+    ports:
+      - '5500:5500'
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
